@@ -14,8 +14,6 @@ Built using **D3.js and Node.js**, this project provides insights into how fresh
 - 🗄️ **PostgreSQL Database** – Storing and processing freshwater data
 - 🚀 **Deployed on Vercel** – Fully online & accessible
 
-![Screenshot](https://your-image-link.com) *(← デモ画像を追加する！)*
-
 ---
 
 ## 🛠️ Technologies Used
