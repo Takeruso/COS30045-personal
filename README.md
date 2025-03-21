@@ -1,13 +1,28 @@
-# How Do Freshwater Trends Shape Sustainability in the OECD?
+# 🌍 OECD Freshwater Sustainability Visualizer
 
-This project is available both as a [deployed application](https://cos-30045-lemon.vercel.app/) and as [source code on GitHub](https://github.com/jeffyong/COS30045).
+An interactive data visualization tool that analyzes freshwater sustainability trends in OECD countries.  
+Built using **D3.js and Node.js**, this project provides insights into how freshwater resources impact sustainability.
 
-## Links
+🔗 **[Live Demo](https://cos-30045-lemon.vercel.app/)**  
+💾 **[GitHub Repository](https://github.com/takeruso/cos30045-personal)**
 
-- **Deployed Application**  
-  Access the live application here:  
-  [https://cos-30045-lemon.vercel.app/](https://cos-30045-lemon.vercel.app/)
+---
 
-- **GitHub Repository**  
-  View the source code here:  
-  [https://github.com/jeffyong/COS30045](https://github.com/jeffyong/COS30045)
+## 📌 Features
+- 📊 **Dynamic Data Visualization** – Interactive graphs & charts built with **D3.js**
+- ⚡ **Optimized API Backend** – Node.js & Express
+- 🗄️ **PostgreSQL Database** – Storing and processing freshwater data
+- 🚀 **Deployed on Vercel** – Fully online & accessible
+
+![Screenshot](https://your-image-link.com) *(← デモ画像を追加する！)*
+
+---
+
+## 🛠️ Technologies Used
+| **Category** | **Tech Stack** |
+|-------------|----------------|
+| 🌐 **Frontend** | D3.js, HTML, CSS, JavaScript |
+| 🖥️ **Backend** | Node.js, Express.js |
+| 🗄️ **Database** | PostgreSQL |
+| ☁️ **Deployment** | Vercel |
+
