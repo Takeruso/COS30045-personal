@@ -1,0 +1,11 @@
+{
+    "rewrites": [
+      { "source": "/data", "destination": "/data.html" },
+      { "source": "/document", "destination": "/document.html" },
+      { "source": "/profile", "destination": "/profile.html" },
+      { "source": "/data2", "destination": "/data2.html" },
+      { "source": "/data3", "destination": "/data3.html" },
+      { "source": "/stacked", "destination": "/stacked.html" }
+    ]
+  }
+  

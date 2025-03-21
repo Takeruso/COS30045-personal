@@ -1,0 +1,478 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="Takeru SONODA" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <link rel="stylesheet" href="style/style.css">
+    <title>Data Visualisation</title>
+</head>
+
+<body>
+    <header>
+        <h1>How Do Freshwater Trends Shape Sustainability in the OECD Countries?</h1>
+        <nav class="navbar">
+            <ul class="nav-links">
+                <li><a href="/"><i class="fas fa-home"></i> Home</a></li>
+                <li><a href="/data" class="active"><i class="fa fa-pie-chart"></i> Graph1</a></li>
+                <li><a href="/data2"><i class="fa fa-bar-chart"></i> Graph2</a></li>
+                <li><a href="/document"><i class="fa-solid fa-file"></i> Documentation</a></li>
+                <li><a href="/profile"><i class="fas fa-users"></i> About Us</a></li>
+            </ul>
+    </header>
+
+    <main class="container my-5">
+        <h1>Choropleth Map - Usage Efficiency</h1>
+        <style>
+            svg {
+                display: block;
+                margin: 0 auto;
+            }
+        </style>
+
+        <div id="sliderContainer" style="position: relative; width: 80%; margin: 0 auto;">
+            <input type="range" id="yearSlider" min="1970" max="2015" step="5" value="1970" style="width: 100%;">
+            <div id="yearLabels" style="display: flex; justify-content: space-between;">
+                <span>1970</span>
+                <span>1975</span>
+                <span>1980</span>
+                <span>1985</span>
+                <span>1990</span>
+                <span>1995</span>
+                <span>2000</span>
+                <span>2005</span>
+                <span>2010</span>
+                <span>2015</span>
+            </div>
+        </div>
+
+        <div id="mapContainer" style="position: relative; width: 100%; height: auto;">
+            <div id="details" class="details-box"></div>
+            <svg width="960" height="600"></svg>
+            <button id="resetButton">Reset Map</button>
+            <div id="rankingContainer">
+            </div>
+
+        </div>
+
+        <div id="chart-title" style="text-align: center; margin-top: 30px; font-size: 18px; font-weight: bold;">
+            Water Usage by Sector (Country, Year)
+        </div>
+        <div id="sector-chart" class="chart-box" style="margin-top: 20px;">
+            <div id="tooltip"
+                style="position: absolute; visibility: hidden; background: white; border: 1px solid #ccc; padding: 8px; border-radius: 5px; pointer-events: none; box-shadow: 0px 2px 4px rgba(0,0,0,0.2);">
+            </div>
+        </div>
+
+        <script>
+            document.getElementById("resetButton").addEventListener("click", function () {
+                svg.transition()
+                    .duration(750)
+                    .call(zoom.transform, d3.zoomIdentity);
+            });
+
+            const svg = d3.select("svg");
+            const width = +svg.attr("width");
+            const height = +svg.attr("height");
+
+            const projection = d3.geoMercator()
+                .scale(150)
+                .translate([width / 2, height / 2]);
+
+            const path = d3.geoPath().projection(projection);
+
+            let countryNameMapping = {};
+
+            const mapGroup = svg.append("g").attr("class", "map-group");
+            const zoom = d3.zoom()
+                .scaleExtent([1, 8]) 
+                .translateExtent([[0, 0], [svg.attr("width"), svg.attr("height")]]) 
+                .on("zoom", (event) => {
+                    svg.selectAll("g.map-group").attr("transform", event.transform); 
+                });
+
+            svg.call(zoom);
+
+            // Fetch country name mappings
+            fetch('/api/usage-efficiency?year=${year}')
+                .then(response => response.json())
+                .then(data => {
+                    countryNameMapping = data.reduce((map, item) => {
+                        map[item.reference_area] = item.country_name || item.reference_area;
+                        return map;
+                    }, {});
+                })
+                .catch(error => console.error('Error loading country name mapping:', error));
+
+            const detailsBox = document.getElementById("details");
+
+            function setDefaultDetails() {
+                if (detailsBox) {
+                    detailsBox.innerHTML = `
+                        <h2>Select a country</h2>
+                        <p>Click on a country to see its details here.</p>
+                    `;
+                } else {
+                    console.error("detailsBox is not defined. Check if the element with ID 'details' exists.");
+                }
+            }
+
+            // Display details for a country
+            async function displayDetails(countryCode, data) {
+                // const detailsBox = document.getElementById("details");
+                const countryName = countryNameMapping[countryCode] || countryCode;
+
+                if (data) {
+                    detailsBox.innerHTML = `
+                        <h2>Details for ${countryName}</h2>
+                        <p><strong>Average Usage Efficiency:</strong> ${data.avg_usage_efficiency.toFixed(2)}</p>
+                        <p><strong>Average Water Abstraction:</strong> ${(data.avg_abstraction_value / 1e9).toFixed(2)} km³</p>
+                        <p><strong>Average Water Resources:</strong> ${(data.avg_resources_value / 1e9).toFixed(2)} km³</p>
+                        <p><strong>Year Group:</strong> ${data.time_period_group}</p>
+                    `;
+
+
+                    // Fetch and draw pie chart
+                    const year = data.time_period_group; // Assuming year group corresponds to slider value
+                    const sectorData = await fetchSectorData(year, countryCode);
+                    drawPieChart("#sector-chart", sectorData, countryCode, year);
+                } else {
+                    detailsBox.innerHTML = `<p>No data available for ${countryName}.</p>`;
+                    d3.select("#sector-chart").selectAll("svg").remove(); // Clear pie chart
+                }
+            }
+
+            document.addEventListener("DOMContentLoaded", () => {
+                setDefaultDetails();
+            });
+            // Fetch usage efficiency data for a specific year group
+            async function fetchUsageEfficiencyData(year) {
+                const response = await fetch(`/api/usage-efficiency?year=${year}`);
+                return response.json();
+
+            }
+
+            // Fetch details for a specific country
+            async function fetchCountryDetails(countryCode) {
+                const year = slider.value;
+
+                try {
+                    const response = await fetch(`/api/usage-efficiency?year=${year}`);
+                    const data = await response.json();
+                    const countryData = data.find(row => row.reference_area === countryCode);
+                    displayDetails(countryCode, countryData);
+                } catch (error) {
+                    console.error("Error fetching country details:", error);
+                    displayDetails(countryCode, null);
+                }
+            }
+
+            const slider = document.getElementById("yearSlider");
+            const yearLabels = document.querySelectorAll("#yearLabels span");
+
+            d3.json("/api/geojson").then(function (geoData) {
+                initializeMap(geoData);
+
+                const initialYear = slider.value;
+                fetchUsageEfficiencyData(initialYear).then(updateMap);
+
+                drawLegend();
+            });
+
+            function initializeMap(geoData) {
+                mapGroup.selectAll("path")
+                    .data(geoData.features)
+                    .enter().append("path")
+                    .attr("d", path)
+                    .attr("class", "country")
+                    .style("fill", "#ccc")
+                    .style("stroke", "#fff")
+                    .style("stroke-width", 0.5);
+            }
+
+            // Update the map with new data
+            function updateMap(data) {
+                const colorScale = d3.scaleSequential()
+                    .domain([0, 100]) // Adjust range based on data
+                    .interpolator(d3.interpolateRdYlGn);
+
+                // Adjust color for extreme values
+                function getColor(value) {
+                    if (value === null || value === undefined) return '#ccc';
+                    if (value < 0.01) return '#d73027';
+                    if (value < 0.05) return '#fc8d59'; 
+                    if (value < 0.08) return '#fee08b'; 
+                    if (value < 0.1) return '#d9ef8b'; 
+                    return '#1a9850'; 
+                }
+
+                svg.selectAll("path")
+                    .style("fill", function (d) {
+                        const countryCode = d.properties.iso_a3;
+                        const countryData = data.find(row => row.reference_area === countryCode);
+
+                        if (!countryData || countryData.avg_usage_efficiency === null) {
+                            return "#ccc";
+                        }
+                        return getColor(countryData.avg_usage_efficiency);
+                    })
+                    .on("click", function (event, d) {
+                        const isoCode = d.properties.iso_a3;
+                        fetchCountryDetails(isoCode);
+                    });
+            }
+
+            function drawLegend() {
+                const legendData = [
+                    { color: "#d73027", label: "Very Low (< 0.01)" },
+                    { color: "#fc8d59", label: "Low (< 0.05)" },
+                    { color: "#fee08b", label: "Medium-Low (< 0.08)" },
+                    { color: "#d9ef8b", label: "High (< 0.1)" },
+                    { color: "#1a9850", label: "Very High (> 0.1)" },
+                    { color: "#ccc", label: "No Data" }
+                ];
+
+                const legend = svg.append("g")
+                    .attr("class", "legend")
+                    .attr("transform", `translate(20, ${svg.attr("height") - 120})`); 
+
+                legendData.forEach((item, index) => {
+                    const legendGroup = legend.append("g")
+                        .attr("transform", `translate(0, ${index * 20})`);
+
+                    legendGroup.append("rect")
+                        .attr("x", 0)
+                        .attr("y", 0)
+                        .attr("width", 18)
+                        .attr("height", 18)
+                        .attr("fill", item.color);
+
+                    legendGroup.append("text")
+                        .attr("x", 25)
+                        .attr("y", 14)
+                        .style("font-size", "12px")
+                        .text(item.label);
+                });
+            }
+
+            async function fetchUsageEfficiencyData(year) {
+                try {
+                    const response = await fetch(`/api/usage-efficiency?year=${year}`);
+                    if (!response.ok) {
+                        throw new Error(`Failed to fetch data for year ${year}: ${response.statusText}`);
+                    }
+                    return await response.json();
+                } catch (error) {
+                    console.error("Error fetching usage efficiency data:", error);
+                    return [];
+                }
+            }
+
+            slider.addEventListener("input", function () {
+                const sliderValue = parseInt(slider.value); 
+
+                yearLabels.forEach(label => {
+                    if (parseInt(label.textContent) === sliderValue) {
+                        label.style.fontWeight = "bold";
+                        label.style.color = "#2196F3"; 
+                    } else {
+                        label.style.fontWeight = "normal";
+                        label.style.color = "black"; 
+                    }
+                });
+
+                fetchUsageEfficiencyData(sliderValue).then(updateMap);
+
+                updateRanking(sliderValue);
+            });
+
+
+            async function fetchSectorData(year, countryCode) {
+                const response = await fetch(`/api/sector-data?year=${year}&countryCode=${countryCode}`);
+                return response.json();
+                // console.log("Fetched Data:", data);
+                return data;
+            }
+
+            function drawPieChart(container, data, countryName, year) {
+                const chartTitle = document.getElementById("chart-title");
+                chartTitle.textContent = `Water Usage by Sector (${countryName}, ${year})`;
+                const width = 300;
+                const height = 300;
+                const radius = Math.min(width, height) / 2;
+
+                // Remove any existing SVG
+                d3.select(container).selectAll("svg").remove();
+
+                // Add SVG element
+                const svg = d3.select(container)
+                    .append("svg")
+                    .attr("width", width + 1000)
+                    .attr("height", height + 50)
+                    .append("g")
+                    .attr("transform", `translate(${width + 250}, ${height / 2})`);
+
+                data.sort((a, b) => b.total_abstraction - a.total_abstraction);
+
+                // Prepare pie data
+                const pie = d3.pie()
+                    .value(d => d.total_abstraction)
+                    .sort(null);
+
+                const arc = d3.arc()
+                    .innerRadius(0) // Full pie chart
+                    .outerRadius(radius);
+
+                const color = d3.scaleOrdinal(d3.schemeCategory10);
+
+                const pieData = pie(data);
+
+                console.log("Pie Data:", pieData);
+
+                const totalAbstraction = d3.sum(data, d => d.total_abstraction);
+
+                const paths = svg.selectAll('path')
+                    .data(pieData)
+                    .enter()
+                    .append('path')
+                    .attr('d', arc)
+                    .attr('fill', (d, i) => color(i)) 
+                    .on("mouseover", function (event, d) {
+                        d3.select("#tooltip")
+                            .style("visibility", "visible")
+                            .html(`
+                                <strong>${d.data.sector}</strong><br>
+                                Total Abstraction: ${d.data.total_abstraction.toFixed(2)} m³<br>
+                                Percentage: ${(d.data.total_abstraction / d3.sum(data, d => d.total_abstraction) * 100).toFixed(2)}%
+                            `)
+                            .style("left", `${event.pageX + 10}px`)
+                            .style("top", `${event.pageY + 10}px`);
+
+                        d3.select(this).style("opacity", 0.7);
+                    })
+                    .on("mouseout", function () {
+                        d3.select("#tooltip")
+                            .style("visibility", "hidden");
+
+                        d3.select(this).style("opacity", 1);
+                    });
+
+                const labels = svg.selectAll('text.label')
+                    .data(pieData)
+                    .enter()
+                    .append('text')
+                    .attr('transform', d => `translate(${arc.centroid(d)})`) 
+                    .attr('text-anchor', 'middle')
+                    .style('font-size', '12px')
+                    .style('fill', 'white')
+                    .text(d => `${(d.data.total_abstraction / d3.sum(data, d => d.total_abstraction) * 100).toFixed(1)}%`);
+
+                // Add legend
+                const legend = svg.selectAll(".legend")
+                    .data(pieData)
+                    .enter()
+                    .append("g")
+                    .attr("transform", (d, i) => `translate(-130, ${i * 20 - 100})`);
+
+                legend.append("rect")
+                    .attr("x", radius + 145)
+                    .attr("y", (d, i) => i * 20 - 12)
+                    .attr("width", 12)
+                    .attr("height", 12)
+                    .attr("fill", (d, i) => color(i));
+
+                legend.append("text")
+                    .attr("x", radius + 165)
+                    .attr("y", (d, i) => i * 20)
+                    // .text(d => `${d.data.sector}`);
+                    .text(d => {
+                        // console.log("Legend Data:", d.data);
+                        return d.data.sector;
+                    });
+                const totalValue = d3.sum(data, d => d.total_abstraction).toFixed(2);
+
+                svg.append("text")
+                    .attr("x", radius + 50)
+                    .attr("y", -130)
+                    .attr("text-anchor", "start")
+                    .style("font-weight", "bold")
+                    .text(`Total: ${totalValue} m³`);
+            }
+
+            function generateRanking(data, limit = 10) {
+                return data
+                    .filter(item => item.avg_usage_efficiency != null) 
+                    .sort((a, b) => b.avg_usage_efficiency - a.avg_usage_efficiency) 
+                    .map((item, index) => ({
+                        rank: index + 1,
+                        reference_area: item.reference_area, 
+                        avg_usage_efficiency: item.avg_usage_efficiency 
+                    }))
+                    .slice(0, limit);
+            }
+
+            function renderRankingTable(containerId, rankingData) {
+                const container = document.getElementById(containerId);
+
+                container.innerHTML = '';
+
+                const table = document.createElement('table');
+                const thead = document.createElement('thead');
+                thead.innerHTML = `
+                    <tr>
+                        <th>Rank</th>
+                        <th>Country</th>
+                        <th>Average Efficiency</th>
+                    </tr>
+                `;
+                table.appendChild(thead);
+
+                const tbody = document.createElement('tbody');
+                rankingData.forEach((item, index) => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${index + 1}</td>
+                        <td>${item.reference_area}</td>
+                        <td>${item.avg_usage_efficiency.toFixed(2)}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+
+                table.appendChild(tbody);
+                container.appendChild(table);
+            }
+
+            async function updateRanking(year) {
+                const data = await fetchUsageEfficiencyData(year);
+                const ranking = generateRanking(data);
+                renderRankingTable('rankingContainer', ranking);
+            }
+
+            updateRanking(1970);
+
+        </script>
+    </main>
+    <footer>
+        <div class="footer-container">
+            <div class="footer-left">
+                <p>@COS30045 Data Visualisation Project</p>
+                <p>by Takeru SONODA and Jeffrey Yong</p>
+            </div>
+            <div class="footer-right">
+                <a href="profile.html">Our Profile</a>
+                <div class="back-to-top">
+                    <br><a href="#top">Back to Top</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+</body>
+
+</html>

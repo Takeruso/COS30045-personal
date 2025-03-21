@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="Takeru SONODA" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style/style.css">
+    <title>Data Visualisation</title>
+    <script src="script/Script.js"></script>
+</head>
+
+<body>
+
+
+    <header>
+        <h1>How Do Freshwater Trends Shape Sustainability in the OECD Countries?</h1>
+        <nav class="navbar">
+            <ul class="nav-links">
+                <li><a href="/"><i class="fas fa-home"></i> Home</a></li>
+                <li><a href="/data"><i class="fa fa-pie-chart"></i> Graph1</a></li>
+                <li><a href="/data2"><i class="fa fa-bar-chart"></i> Graph2</a></li>
+                <li><a href="/document" class="active"><i class="fa-solid fa-file"></i> Documentation</a></li>
+                <li><a href="/profile"><i class="fas fa-users"></i> About Us</a></li>
+            </ul>
+    </header>
+
+    <main class="container my-5">
+        <section id="data-sources">
+            <h2>Data Sources</h2>
+            <div class="source">
+                <h3><a href="https://data-explorer.oecd.org/vis?tm=Freshwater%20resources&pg=0&snb=4&df%5Bds%5D=dsDisseminateFinalDMZ&df%5Bid%5D=DSD_WATER_RESOURCES%40DF_WATER_RESOURCES&df%5Bag%5D=OECD.ENV.EPI&df%5Bvs%5D=1.0&pd=2015%2C&dq=AUS.A.AQUIFER_RESOU%2BEVAP_RESOU%2BIN_RESOU%2BINTERN_RESOU%2BOUT_RESOU%2BOUT_NEI_RESOU%2BOUT_SEA_RESOU%2BPREC_RESOU%2BRENEW_RESOU..LTAA&ly%5Bcl%5D=TIME_PERIOD&ly%5Brw%5D=COMBINED_UNIT_MEASURE%2CMEASURE&to%5BTIME_PERIOD%5D=false&vw=ov"
+                        target="_blank">OECD Data Explorer - Freshwater Resources</a></h3>
+                <p>This dataset provides statistical data related to "Freshwater Resources" compiled by the OECD. It
+                    includes key indicators such as precipitation resources, groundwater resources, and renewable water
+                    resources. The data is structured by country and time period.
+                </p>
+            </div>
+            <div class="source">
+                <h3><a href="https://www.oecd-ilibrary.org/environment/data/oecd-environment-statistics/freshwater-abstractions_data-00602-en?parent=http%3A%2F%2Finstance.metastore.ingenta.com%2Fcontent%2Fcollection%2Fenv-data-en"
+                        target="_blank">OECD Data Explorer - Freshwater Abstractions</a>
+                </h3>
+                <p>This dataset provides information on "Freshwater Abstractions," including abstraction rates by sector
+                    such as irrigation, industry, domestic use, and total abstraction.
+                    It includes data by country and time period.
+                </p>
+            </div>
+            <div class="source">
+                <h3><a href="https://geojson-maps.kyd.au" target="_blank">Custom GeoJSON</a></h3>
+                <p>A custom GeoJSON file provides geographic boundaries for mapping and visualising data.
+                    It contains geographic features such as administrative regions and their spatial coordinates,
+                    essential for generating choropleth maps or other geographic visualisations.
+                </p>
+            </div>
+        </section>
+
+        <section id="processed-datasets">
+            <h2>Processed Datasets</h2>
+            <ul>
+                <li><a href="/datasets/WATER_ABSTRACT.csv" download>Water Abstract Original Datasets
+                        (CSV)</a></li>
+                <li><a href="/datasets/WATER_RESOURCES.csv" download>Water Resources Original Datasets
+                        Year (CSV)</a></li>
+                <li><a href="/datasets/water_resources_data.db" download>SQLite Datasets of Water Abstract and
+                        Resources</a></li>
+                <li><a href="/datasets/custom.geo.json" download>Custom Geo Json</a></li>
+                <li><a href="/datasets/water_abstraction_data.json" download>Water Abstractions Json</a></li>
+                <li><a href="/datasets/water_resources_data.json" download>Water Resources Json</a></li>
+            </ul>
+        </section>
+
+    </main>
+
+    <footer>
+        <div class="footer-container">
+            <div class="footer-left">
+                <p>@COS30045 Data Visualisation Project</p>
+                <p>by Takeru SONODA and Jeffrey Yong</p>
+            </div>
+            <div class="footer-right">
+                <a href="profile.html">Our Profile</a>
+                <div class="back-to-top">
+                    <br><a href="#top">Back to Top</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+    <script src="script/Script.js"></script>
+</body>
+
+</html>

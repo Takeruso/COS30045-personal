@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="Takeru SONODA" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <link rel="stylesheet" href="style/style.css">
+    <title>Data Visualisation</title>
+</head>
+
+<body>
+    <header>
+        <h1>How Do Freshwater Trends Shape Sustainability in the OECD Countries?</h1>
+        <nav class="navbar">
+            <ul class="nav-links">
+                <li><a href="/"><i class="fas fa-home"></i> Home</a></li>
+                <li><a href="/data"><i class="fa fa-pie-chart"></i> Graph1</a></li>
+                <li><a href="/data2" class="active"><i class="fa fa-bar-chart"></i> Graph2</a></li>
+                <li><a href="/document"><i class="fa-solid fa-file"></i> Documentation</a></li>
+                <li><a href="/profile"><i class="fas fa-users"></i> About Us</a></li>
+            </ul>
+    </header>
+
+    <main class="container my-5">
+        <h1>Water Resources and Abstraction in OECD Countries: A 5-Year Overview</h1>
+        <style>
+            svg {
+                display: block;
+                margin: 0 auto;
+            }
+        </style>
+        <div class="button-container" style="text-align: center; margin-bottom: 20px;">
+            <button id="abstraction-btn" class="abstraction-btn">Abstraction Chart</button>
+            <button id="resource-btn" class="resource-btn">Resource Chart</button>
+        </div>
+        <div id="chart-container"></div>
+    </main>
+    <script>
+        document.getElementById("abstraction-btn").addEventListener("click", () => {
+            fetch('/api/abstraction-data')
+                .then(response => {
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    return response.json();
+                })
+                .then(data => {
+                    drawAbstractionChart("#chart-container", 800, 500, data);
+                })
+                .catch(error => console.error("Failed to fetch abstraction data:", error));
+        });
+
+        document.getElementById("resource-btn").addEventListener("click", () => {
+            fetch('/api/resource-data')
+                .then(response => {
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    return response.json();
+                })
+                .then(data => {
+                    drawResourceChart("#chart-container", 800, 500, data);
+                })
+                .catch(error => console.error("Failed to fetch resource data:", error));
+        });
+
+
+        function drawAbstractionChart(container, w, h, dataset) {
+            const padding = 70;
+            d3.select(container).selectAll("svg").remove();
+
+
+            const xScale = d3.scaleLinear()
+                .domain(d3.extent(dataset, d => d.year))
+                .range([padding, w - padding]);
+
+            const yScale = d3.scaleLinear()
+                .domain([0, d3.max(dataset, d => d.value / 1e6)]) 
+                .range([h - padding, padding]);
+
+            const line = d3.line()
+                .x(d => xScale(d.year))
+                .y(d => yScale(d.value / 1e6));
+
+            const svg = d3.select(container)
+                .append("svg")
+                .attr("width", w)
+                .attr("height", h);
+
+            svg.append("path")
+                .datum(dataset)
+                .attr("class", "line")
+                .attr("fill", "none")
+                .attr("stroke", "steelblue")
+                .attr("stroke-width", 2)
+                .attr("d", line)
+                .attr("stroke-dasharray", function () {
+                    return this.getTotalLength();
+                })
+                .attr("stroke-dashoffset", function () {
+                    return this.getTotalLength();
+                })
+                .transition()
+                .duration(2000)
+                .attr("stroke-dashoffset", 0);
+
+            svg.selectAll("circle")
+                .data(dataset)
+                .enter()
+                .append("circle")
+                .attr("cx", d => xScale(d.year))
+                .attr("cy", d => yScale(d.value / 1e6))
+                .attr("r", 4)
+                .attr("fill", "steelblue");
+
+            svg.selectAll("text.data-label")
+                .data(dataset)
+                .enter()
+                .append("text")
+                .attr("class", "data-label")
+                .attr("x", d => xScale(d.year))
+                // .attr("y", d => yScale(d.value) - 10)
+                .attr("y", d => yScale(d.value / 1e6) - 10)
+                .attr("text-anchor", "middle")
+                .attr("font-size", "10px")
+                .attr("fill", "#555555")
+                .text(d => `${(d.value / 1e6).toFixed(2)}M`);
+
+            // Create x-axis
+            const xAxis = d3.axisBottom(xScale)
+                .tickValues(dataset.map(d => d.year)) // Only show ticks at 5-year intervals
+                .tickFormat(d3.format("d"));
+
+            svg.append("g")
+                .attr("transform", `translate(0,${h - padding})`)
+                .call(xAxis);
+
+            // Create y-axis
+            const yAxis = d3.axisLeft(yScale)
+                .tickFormat(d => `${d}M`);
+
+            svg.append("g")
+                .attr("transform", `translate(${padding},0)`)
+                .call(yAxis);
+
+            svg.append("text")
+                .attr("x", w / 2)
+                .attr("y", padding / 2)
+                .attr("text-anchor", "middle")
+                .attr("font-size", "24px")
+                .attr("fill", "#2b6777")
+                .text("Average Water Abstraction by OECD Countries (5-Year Intervals)");
+            // x axis label
+            svg.append("text")
+                .attr("x", w / 2)
+                .attr("y", h - 10)
+                .attr("text-anchor", "middle")
+                .attr("font-size", "12px")
+                .attr("fill", "black")
+                .text("Year (5-Year Intervals)");
+
+            // y axis label
+            svg.append("text")
+                .attr("x", -h / 2)
+                .attr("y", padding / 6)
+                .attr("text-anchor", "middle")
+                .attr("font-size", "12px")
+                .attr("fill", "black")
+                .attr("transform", "rotate(-90)")
+                .text("Water Abstraction (Million m³)");
+
+        }
+
+        function drawResourceChart(container, w, h, dataset) {
+            const padding = 70;
+            d3.select(container).selectAll("svg").remove();
+
+            const xScale = d3.scaleLinear()
+                .domain(d3.extent(dataset, d => d.year))
+                .range([padding, w - padding]);
+
+            const yScale = d3.scaleLinear()
+                .domain([0, d3.max(dataset, d => d.value)])
+                .range([h - padding, padding]);
+
+            const line = d3.line()
+                .x(d => xScale(d.year))
+                .y(d => yScale(d.value));
+
+            const svg = d3.select(container)
+                .append("svg")
+                .attr("width", w)
+                .attr("height", h);
+
+            svg.append("path")
+                .datum(dataset)
+                .attr("class", "line")
+                .attr("fill", "none")
+                .attr("stroke", "steelblue")
+                .attr("stroke-width", 2)
+                .attr("d", line)
+                .attr("stroke-dasharray", function () {
+                    return this.getTotalLength();
+                })
+                .attr("stroke-dashoffset", function () {
+                    return this.getTotalLength();
+                })
+                .transition()
+                .duration(2000)
+                .attr("stroke-dashoffset", 0);
+
+            svg.selectAll("circle")
+                .data(dataset)
+                .enter()
+                .append("circle")
+                .attr("cx", d => xScale(d.year))
+                .attr("cy", d => yScale(d.value))
+                .attr("r", 4)
+                .attr("fill", "steelblue");
+
+            svg.selectAll("text.data-label")
+                .data(dataset)
+                .enter()
+                .append("text")
+                .attr("class", "data-label")
+                .attr("x", d => xScale(d.year))          
+                .attr("y", d => yScale(d.value) - 10) 
+                .attr("text-anchor", "middle")
+                .attr("font-size", "10px")
+                .attr("fill", "#555555")
+                .text(d => `${(d.value / 1e3).toFixed(2)}B`);
+
+            const xAxis = d3.axisBottom(xScale)
+                .tickValues(dataset.map(d => d.year)) // Only show ticks at 5-year intervals
+                .tickFormat(d3.format("d"));
+
+            svg.append("g")
+                .attr("transform", `translate(0,${h - padding})`)
+                .call(xAxis);
+
+            const yAxis = d3.axisLeft(yScale)
+                .tickFormat(d => `${d}B`);
+
+            svg.append("g")
+                .attr("transform", `translate(${padding},0)`)
+                .call(yAxis);
+
+            svg.append("text")
+                .attr("x", w / 2)
+                .attr("y", padding / 2)
+                .attr("text-anchor", "middle")
+                .attr("font-size", "24px")
+                .attr("fill", "#2b6777")
+                .text("Average Freshwater Resources of every OECD countries (5-Year Intervals)");
+
+            // x axis label
+            svg.append("text")
+                .attr("x", w / 2)
+                .attr("y", h - 10)
+                .attr("text-anchor", "middle")
+                .attr("font-size", "12px")
+                .attr("fill", "black")
+                .text("Year (5-Year Intervals)");
+
+            // y axis label
+            svg.append("text")
+                .attr("x", -h / 2)
+                .attr("y", padding / 6)
+                .attr("text-anchor", "middle")
+                .attr("font-size", "12px")
+                .attr("fill", "black")
+                .attr("transform", "rotate(-90)")
+                .text("Water Abstraction (Billion m³)");
+        }
+    </script>
+    <footer>
+        <div class="footer-container">
+            <div class="footer-left">
+                <p>@COS30045 Data Visualisation Project</p>
+                <p>by Takeru SONODA and Jeffrey Yong</p>
+            </div>
+            <div class="footer-right">
+                <a href="profile.html">Our Profile</a>
+                <div class="back-to-top">
+                    <br><a href="#top">Back to Top</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+</body>
+
+</html>
