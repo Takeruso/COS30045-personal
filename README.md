@@ -11,7 +11,6 @@ Built using **D3.js and Node.js**, this project provides insights into how fresh
 ## 📌 Features
 - 📊 **Dynamic Data Visualization** – Interactive graphs & charts built with **D3.js**
 - ⚡ **Optimized API Backend** – Node.js & Express
-- 🗄️ **PostgreSQL Database** – Storing and processing freshwater data
 - 🚀 **Deployed on Vercel** – Fully online & accessible
 
 ---
