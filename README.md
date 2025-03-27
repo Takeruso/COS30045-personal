@@ -19,6 +19,6 @@ Built using **D3.js and Node.js**, this project provides insights into how fresh
 | **Category** | **Tech Stack** |
 |-------------|----------------|
 | 🌐 **Frontend** | D3.js, HTML, CSS, JavaScript |
-| 🖥️ **Backend** | Node.js, Express.js |
+| 🖥️ **Backend** | Node.js, Next.js |
 | ☁️ **Deployment** | Vercel |
 
