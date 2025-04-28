@@ -86,8 +86,10 @@
 
             const svg = d3.select(container)
                 .append("svg")
-                .attr("width", w)
-                .attr("height", h);
+                .attr("viewBox", `0 0 ${w} ${h}`) 
+                .attr("preserveAspectRatio", "xMidYMid meet") 
+                .style("width", "100%")
+                .style("height", "auto"); 
 
             svg.append("path")
                 .datum(dataset)
@@ -188,11 +190,13 @@
             const line = d3.line()
                 .x(d => xScale(d.year))
                 .y(d => yScale(d.value));
-
+    
             const svg = d3.select(container)
                 .append("svg")
-                .attr("width", w)
-                .attr("height", h);
+                .attr("viewBox", `0 0 ${w} ${h}`) 
+                .attr("preserveAspectRatio", "xMidYMid meet") 
+                .style("width", "100%")  
+                .style("height", "auto"); 
 
             svg.append("path")
                 .datum(dataset)

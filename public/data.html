@@ -55,7 +55,7 @@
 
         <div id="mapContainer" style="position: relative; width: 100%; height: auto;">
             <div id="details" class="details-box"></div>
-            <svg width="960" height="600"></svg>
+            <svg class="map-svg" width="960" height="600"></svg>
             <button id="resetButton">Reset Map</button>
             <div id="rankingContainer">
             </div>
@@ -79,6 +79,7 @@
             });
 
             const svg = d3.select("svg");
+
             const width = +svg.attr("width");
             const height = +svg.attr("height");
 
@@ -99,6 +100,21 @@
                 });
 
             svg.call(zoom);
+
+            function resizeMap() {
+                const svgElement = document.querySelector(".map-svg");
+                const newWidth = svgElement.clientWidth;
+                const newHeight = svgElement.clientHeight;
+
+                projection
+                    .scale(newWidth / 6)  
+                    .translate([newWidth / 2, newHeight / 2]);  
+
+                svg.selectAll("path")
+                    .attr("d", path);  
+            }
+
+            window.addEventListener('resize', resizeMap);
 
             // Fetch country name mappings
             fetch('/api/usage-efficiency?year=${year}')
@@ -311,13 +327,22 @@
                 // Remove any existing SVG
                 d3.select(container).selectAll("svg").remove();
 
-                // Add SVG element
+                // const svg = d3.select(container)
+                //     .append("svg")
+                //     .attr("width", width + 1000)
+                //     .attr("height", height + 50)
+                //     .append("g")
+                //     .attr("transform", `translate(${width + 250}, ${height / 2})`);
+
                 const svg = d3.select(container)
                     .append("svg")
-                    .attr("width", width + 1000)
-                    .attr("height", height + 50)
+                    .attr("viewBox", `0 0 ${width} ${height}`)
+                    .attr("preserveAspectRatio", "xMidYMid meet")
+                    .style("width", "100%")
+                    .style("max-width", "400px") 
+                    .style("height", "auto")
                     .append("g")
-                    .attr("transform", `translate(${width + 250}, ${height / 2})`);
+                    .attr("transform", `translate(${width/2}, ${height/2})`);
 
                 data.sort((a, b) => b.total_abstraction - a.total_abstraction);
 

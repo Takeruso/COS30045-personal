@@ -1,3 +1,15 @@
+svg {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+}
+
+.map-svg {
+    width: 100% !important;
+    height: auto !important;
+}
+
 body {
     font-family: 'Roboto', sans-serif;
     background-color: #f9f9f9;
@@ -405,3 +417,37 @@ footer {
     font-size: 1rem;
     vertical-align: middle; 
 }
+
+@media (max-width: 800px) {
+    .container {
+        width: 95%;
+        padding: 0 10px;
+      }
+    
+      .nav-links {
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+      }
+    
+      .abstraction-btn,
+      .resource-btn {
+        width: 100%;
+        margin: 10px 0;
+        font-size: 1.2em;
+      }
+    
+      canvas {
+        width: 100% !important;
+        height: auto !important;
+      }
+    
+      #rankingContainer,
+      #details {
+        position: static;
+        width: 100%;
+        margin-top: 20px;
+      }
+    }
+    
+  
