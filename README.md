@@ -3,8 +3,8 @@
 An interactive data visualization tool that analyzes freshwater sustainability trends in OECD countries.  
 Built using **D3.js and Node.js**, this project provides insights into how freshwater resources impact sustainability.
 
-🔗 **[Live Demo](https://cos-30045-personal-4ogv.vercel.app/)**  
-💾 **[GitHub Repository](https://github.com/takeruso/cos30045-personal)**
+🔗 **[Live Demo](https://data-visualisation-d3-js.vercel.app/)**  
+💾 **[GitHub Repository](https://github.com/Takeruso/data-visualisation-D3.js)**
 
 ---
 
