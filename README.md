@@ -8,7 +8,7 @@ Built using D3.js and Node.js, this project enables users to explore historical 
 ---
 
 ## 🔗 Live Demo
-[Visit here](https://data-visualisation-d3-23hbw3wf1.vercel.app)
+[Visit here](https://data-visualisation-d3-js.vercel.app/)
 
 ---
 
